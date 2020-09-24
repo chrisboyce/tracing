@@ -1,0 +1,676 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Agreemint API",
+    "description": "Create and manage documents and smart forms",
+    "termsOfService": "https://agreemint.com/api-tos",
+    "contact": {
+      "name": "API Support",
+      "url": "https://support.agreemint.com/api",
+      "email": "api.support@agreemint.com"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.agreemint.com",
+      "description": "Agreemint API"
+    },
+    {
+      "url": "https://{region}.api.agreemint.com",
+      "description": "Agreemint API (Regional)",
+      "variables": {
+        "region": {
+          "default": "us-west-1",
+          "description": "Select a specific region for data transport and storage",
+          "enum": [
+            "us-west-1",
+            "us-east-1",
+            "ca-central-1",
+            "sa-1",
+            "eu-1"
+          ]
+        }
+      }
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "Documents",
+      "description": "Import and manage documents in Agreemint"
+    },
+    {
+      "name": "Sections",
+      "description": "Sections allow changes in different parts of a document to happen concurrently"
+    },
+    {
+      "name": "Smart Forms",
+      "description": "Query and fill out \"smart form\" fields"
+    },
+    {
+      "name": "Permissions",
+      "description": "Query and modify a user's access to resources in a document"
+    },
+    {
+      "name": "Comments [Phase 2]",
+      "description": "Create, query, and resolve comments"
+    },
+    {
+      "name": "Suggestions [Phase 2]",
+      "description": "Query and resolve edits"
+    },
+    {
+      "name": "Priorities [Phase 2]",
+      "description": "Query and change priorities"
+    }
+  ],
+  "paths": {
+    "/document/{docId}": {
+      "description": "Represents a single document in the system",
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "docId",
+            "required": true,
+            "description": "Document ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDocumentResponse"
+                }
+              }
+            },
+            "description": "Document was found"
+          }
+        }
+      },
+      "put": {
+        "description": "Update simple document properties. Sections, Participants, Inputs, and Permissions all have respective API paths for operations.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "docId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Documents"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateDocumentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/document": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "description": "Create a new Agreemint document from an existing file. The `content-type` header is used to identify the type of document, and supported file types will be converted in to a `Document`.",
+        "requestBody": {
+          "required": true,
+          "description": "Document file, base64 encoded",
+          "content": {
+            "application/pdf": {
+              "schema": {
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "application/msword": {
+              "schema": {
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+              "schema": {
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "text/html": {
+              "schema": {
+                "type": "string",
+                "format": "base64"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document was successfully created, returning the new document ID and initial versions ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateDocumentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/document/{docId}/inputs": {
+      "get": {
+        "description": "Fetch smart form inputs for the document",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "docId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Document ID"
+          }
+        ],
+        "tags": [
+          "Smart Forms"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of smart form inputs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FormInput"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/document/{docId}/input/{inputId}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "docId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Document ID"
+          },
+          {
+            "in": "path",
+            "name": "inputId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Form Input ID"
+          }
+        ],
+        "tags": [
+          "Smart Forms"
+        ]
+      },
+      "put": {
+        "tags": [
+          "Smart Forms"
+        ]
+      }
+    },
+    "/document/{docId}/permissions": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": ""
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Permissions"
+        ]
+      }
+    },
+    "/document/{docId}/permission/{permId}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPermissionResponse"
+                }
+              }
+            },
+            "description": "Permission is returned"
+          }
+        },
+        "tags": [
+          "Permissions"
+        ]
+      },
+      "post": {
+        "tags": [
+          "Permissions"
+        ]
+      },
+      "put": {
+        "tags": [
+          "Permissions"
+        ]
+      }
+    },
+    "/document/{docId}/sections": {
+      "get": {
+        "tags": [
+          "Sections"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of section",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Section"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/document/{docId}/section/{sectionId}": {
+      "description": "Represents a selection of document content",
+      "get": {
+        "tags": [
+          "Sections"
+        ],
+        "responses": {
+        }
+      }
+    },
+    "/document/{docId}/section/{sectionId}/unlock": {
+      "description": "Unlock a section",
+      "put": {
+        "tags": [
+          "Sections"
+        ]
+      }
+    },
+    "/document/{docId}/section": {
+      "put": {
+        "tags": [
+          "Sections"
+        ],
+        "description": "Update a section's content",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The section was successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSectionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The version ID specified does not match the latest version ID for the document. The client must merge in changes from the latest version and retry the request"
+          }
+        }
+      }
+    },
+    "/document/{docId}/section/{sectionId}/lock": {
+      "description": "Lock a section",
+      "put": {
+        "tags": [
+          "Sections"
+        ]
+      }
+    },
+    "/document/{docId}/participant/{participantId}": {
+      "description": ""
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateDocumentResponse": {
+        "title": "Create Document Response",
+        "type": "object",
+        "properties": {
+          "docId": {
+            "type": "string",
+            "required": true
+          },
+          "verId": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "Document": {
+        "title": "Document Model",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "c8564932-a411-4ff7-826d-158837b97fed"
+          },
+          "title": {
+            "type": "string",
+            "example": "Mutual NDA with Widget Co."
+          },
+          "participants": {
+            "example": [
+              {
+                "id": "68de1d17-8eeb-41cb-a525-b48b457bb2fd",
+                "displayName": "Erin Example"
+              }
+            ],
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/components/schemas/Participant"
+              }
+            ]
+          },
+          "status": {},
+          "inputs": {
+            "type": "array",
+            "example": [
+              {
+                "id": "1c5ecdfd-8200-4e6a-bbcd-8d0db17ce3a6",
+                "author": {
+                  "id": "68de1d17-8eeb-41cb-a525-b48b457bb2fd",
+                  "displayName": "Erin Example"
+                },
+                "placeholder": "First Name",
+                "value": "Riley"
+              }
+            ],
+            "items": [
+              {
+                "$ref": "#/components/schemas/FormInput"
+              }
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "example": [
+              {
+                "id": "93589e45-adcf-4668-aab6-cb64647efb54",
+                "resourceId": "1c5ecdfd-8200-4e6a-bbcd-8d0db17ce3a6",
+                "resourceType": "formInput",
+                "allowActions": [
+                  "updated"
+                ]
+              }
+            ],
+            "items": [
+              {
+                "$ref": "#/components/schemas/Permission"
+              }
+            ]
+          },
+          "created": {
+            "type": "integer"
+          },
+          "lastUpdated": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "sections": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/components/schemas/Section"
+              }
+            ]
+          },
+          "versionId": {
+            "type": "string"
+          }
+        }
+      },
+      "GetPermissionsResponse": {
+      },
+      "GetPermissionResponse": {
+        "$ref": "#/components/schemas/Permission"
+      },
+      "UpdateSectionRequest": {
+        "title": "Update Section Request",
+        "description": "Update section content",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "f321b3ab-235a-466f-8b00-a661f95618f4"
+          },
+          "expectedVersionId": {
+            "type": "string",
+            "example": "ad7ad4d3-c78e-4c82-a21a-a5ae2f4ad723",
+            "title": "Expected Document Version",
+            "description": "The expected version must match the latest version of the document. The version ID is returned when a document is fetched, and if the version does not match, the client will need to merge in the latest version and execute the update again."
+          },
+          "content": {
+            "type": "string",
+            "example": "Lorem ipsum dolor sit amet, consectetur..."
+          }
+        }
+      },
+      "UpdateSectionResponse": {
+        "title": "Update Section Response",
+        "properties": {
+          "versionId": {
+            "description": "ID of new document version",
+            "type": "string"
+          }
+        }
+      },
+      "UpdateDocumentResponse": {
+        "properties": {
+          "docId": {
+            "type": "string",
+            "title": "Existing document ID"
+          },
+          "verId": {
+            "type": "string",
+            "title": "New version ID"
+          }
+        }
+      },
+      "UpdateDocumentRequest": {
+        "title": "Update Document Request",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "FormInput": {
+        "description": "Single instance of a form input field",
+        "title": "Form Input Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Unique ID for input"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Participant"
+          },
+          "placeholder": {
+            "title": "Text to display in the form input when no value is set"
+          },
+          "value": {
+            "title": "Current value of the form input"
+          },
+          "tags": {
+            "title": "List of Tags",
+            "description": "Any number of tags can be attached to a particular input field. These are meant to be used by clients to group fields of the same type in reports such as dashboards",
+            "type": "array",
+            "example": [
+              "full_name",
+              "gdpr_ident"
+            ],
+            "items": {
+              "type": "string",
+              "example": "full_name"
+            }
+          }
+        }
+      },
+      "Section": {
+        "title": "Section Model",
+        "description": "Represents a selection text from a document",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "68de1d17-8eeb-41cb-a525-b48b457bb2fd"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "locked",
+              "unlocked"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "lockedBy": {}
+        }
+      },
+      "GetDocumentResponse": {
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/Document"
+          }
+        }
+      },
+      "Version": {
+        "title": "Document Version",
+        "description": "Specific revision of a document"
+      },
+      "Grant": {
+        "title": "Grant",
+        "description": "Grants a specific user or group access to a resource"
+      },
+      "Permission": {
+        "title": "Permission Model",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "93589e45-adcf-4668-aab6-cb64647efb54"
+          },
+          "resourceId": {
+            "type": "string",
+            "example": "1c5ecdfd-8200-4e6a-bbcd-8d0db17ce3a6"
+          },
+          "resourceType": {
+            "type": "string",
+            "example": "formInput"
+          },
+          "allowActions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "update"
+            }
+          },
+          "denyActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Participant": {
+        "title": "Participant Model",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "45e2ad06-a379-42ee-8837-16bdcf24c65e"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Erin Example",
+            "description": "A participant's long-form name"
+          }
+        }
+      },
+      "Group": {},
+      "Organization": {}
+    },
+    "securitySchemes": {
+      "singlePage": {
+        "description": "Authorization scheme for use in customer-facing, single page applications (SPAs)",
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://api.agreemint.com/oauth2/authorize",
+            "scopes": {
+            }
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "url": "https://docs.agreemint.com/api",
+    "description": "Additional Documentation"
+  }
+}
