@@ -48,6 +48,8 @@ paths:
       - Documents
       parameters:
       - in: path
+        schema:
+          type: string
         name: docId
         required: true
         description: Document ID
@@ -139,6 +141,9 @@ paths:
                   "$ref": "#/components/schemas/FormInput"
   "/document/{docId}/input/{inputId}":
     get:
+      responses:
+        "200":
+          description: OK
       parameters:
       - in: path
         name: docId
@@ -154,13 +159,19 @@ paths:
         description: Form Input ID
       tags:
       - Smart Forms
-    put:
-      tags:
-      - Smart Forms
+    
   "/document/{docId}/permissions":
     get:
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
       responses:
         '200':
+          description: OK
           content:
             application/json:
               schema:
@@ -169,6 +180,18 @@ paths:
       - Permissions
   "/document/{docId}/permission/{permId}":
     get:
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
+      - in: path
+        name: permId
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           content:
@@ -178,14 +201,16 @@ paths:
           description: Permission is returned
       tags:
       - Permissions
-    post:
-      tags:
-      - Permissions
-    put:
-      tags:
-      - Permissions
+   
   "/document/{docId}/sections":
     get:
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
       tags:
       - Sections
       responses:
@@ -200,16 +225,54 @@ paths:
   "/document/{docId}/section/{sectionId}":
     description: Represents a selection of document content
     get:
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
+      - in: path
+        name: sectionId
+        schema:
+          type: string
+        required: true
+        description: Section ID
       tags:
       - Sections
-      responses: {}
+      responses: 
+        "200":
+          description: OK
   "/document/{docId}/section/{sectionId}/unlock":
     description: Unlock a section
     put:
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
+      - in: path
+        name: sectionId
+        schema:
+          type: string
+        required: true
+        description: Section ID
       tags:
       - Sections
+      responses:
+        "200":
+          description: OK
   "/document/{docId}/section":
     put:
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
       tags:
       - Sections
       description: Update a section's content
@@ -232,10 +295,25 @@ paths:
   "/document/{docId}/section/{sectionId}/lock":
     description: Lock a section
     put:
+      responses:
+        200:
+          description: OK
+      parameters:
+      - in: path
+        name: docId
+        schema:
+          type: string
+        required: true
+        description: Document ID
+      - in: path
+        name: sectionId
+        schema:
+          type: string
+        required: true
+        description: Section ID
       tags:
       - Sections
-  "/document/{docId}/participant/{participantId}":
-    description: ''
+
 components:
   schemas:
     CreateDocumentResponse:
@@ -244,10 +322,10 @@ components:
       properties:
         docId:
           type: string
-          required: true
+          
         verId:
           type: string
-          required: true
+          
     Document:
       title: Document Model
       properties:
@@ -263,7 +341,7 @@ components:
             displayName: Erin Example
           type: array
           items:
-          - "$ref": "#/components/schemas/Participant"
+            "$ref": "#/components/schemas/Participant"
         status: {}
         inputs:
           type: array
@@ -275,7 +353,7 @@ components:
             placeholder: First Name
             value: Riley
           items:
-          - "$ref": "#/components/schemas/FormInput"
+            "$ref": "#/components/schemas/FormInput"
         permissions:
           type: array
           example:
@@ -285,7 +363,7 @@ components:
             allowActions:
             - updated
           items:
-          - "$ref": "#/components/schemas/Permission"
+            "$ref": "#/components/schemas/Permission"
         created:
           type: integer
         lastUpdated:
@@ -295,7 +373,7 @@ components:
         sections:
           type: array
           items:
-          - "$ref": "#/components/schemas/Section"
+            "$ref": "#/components/schemas/Section"
         versionId:
           type: string
     GetPermissionsResponse: {}
@@ -434,6 +512,7 @@ components:
       flows:
         authorizationCode:
           authorizationUrl: https://api.agreemint.com/oauth2/authorize
+          tokenUrl: https://example.com
           scopes: {}
 externalDocs:
   url: https://docs.agreemint.com/api
